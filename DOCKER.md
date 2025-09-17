@@ -13,8 +13,8 @@ This document provides comprehensive instructions for building, running, and dep
 #### 1. Build and Run with Docker Compose (Recommended)
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd automatic-mailgun
+git clone https://github.com/ReclaimerGold/mg2cf.git
+cd mg2cf
 
 # Start the application
 docker-compose up --build
@@ -34,7 +34,9 @@ docker run -p 5000:5000 automatic-mailgun
 #### 3. Use Pre-built Image from GitHub Container Registry
 ```bash
 # Pull and run the latest release
-docker run -p 5000:5000 ghcr.io/YOUR_USERNAME/automatic-mailgun:latest
+```bash
+docker run -p 5000:5000 ghcr.io/reclaimergold/mg2cf:latest
+```
 ```
 
 ### Environment Configuration
@@ -109,7 +111,7 @@ The project includes a comprehensive CI/CD pipeline that:
 
 3. **The workflow will automatically:**
    - Build the Docker image
-   - Push it to `ghcr.io/YOUR_USERNAME/automatic-mailgun:v1.0.0`
+   - Push it to `ghcr.io/reclaimergold/mg2cf:v1.0.0`
    - Also tag it as `latest`
 
 ### Using Released Images
