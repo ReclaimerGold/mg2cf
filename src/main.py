@@ -3,9 +3,31 @@ from flask import Flask, render_template, request, jsonify, flash, redirect, url
 from api.cloudflare_client import CloudflareClient
 from api.mailgun_client import MailgunClient
 import os
+import secrets
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
+
+# Security configuration
+secret_key = os.environ.get('SECRET_KEY')
+if not secret_key or secret_key == 'dev-secret-key-change-in-production':
+    if os.environ.get('FLASK_ENV') == 'development':
+        secret_key = 'dev-secret-key-change-in-production'
+    else:
+        # Generate a random secret key for production if none provided
+        secret_key = secrets.token_hex(32)
+        print("WARNING: No SECRET_KEY environment variable set. Generated random key.")
+
+app.secret_key = secret_key
+
+# Security headers
+@app.after_request
+def security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'DENY'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    response.headers['Content-Security-Policy'] = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data:; font-src 'self' data:;"
+    return response
 
 @app.route('/')
 def index():
