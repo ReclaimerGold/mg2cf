@@ -18,9 +18,8 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application source code
+# Copy application source code only
 COPY src/ ./src/
-COPY LICENSE.md README.md ./
 
 # Create non-root user for security
 RUN adduser -D -s /bin/sh app \
