@@ -1,156 +1,312 @@
-# Mailgun DNS Setup
+# 📧 Mailgun DNS Setup Tool
 
-A modern web application for automating Mailgun domain configuration with Cloudflare DNS management.
+A simple, modern web application that automatically configures DNS records for Mailgun email delivery. Perfect for home labs, small businesses, or anyone who wants to set up professional email delivery without the hassle of manual DNS configuration.
 
-## Features
+## ✨ What This Does
 
-- **Automatic Setup**: Connect your Cloudflare account and automatically create all DNS records needed for Mailgun
-- **Manual Fallback**: If automatic setup isn't available, get a clear list of DNS records for manual configuration
-- **Secure Processing**: API credentials are processed securely and never stored on the server
-- **Professional UI**: Clean, modern interface built with Tailwind CSS
+This tool automatically:
+- ✅ Creates the necessary DNS records for Mailgun email delivery
+- ✅ Sets up SPF, DKIM, and MX records correctly
+- ✅ Validates your domain configuration
+- ✅ Provides a clean web interface for easy setup
 
-## Quick Start
+**No more copying and pasting DNS records manually!**
 
-### Option 1: Using Docker (Recommended)
+## 🏠 Perfect for Home Labs
 
-1. **Clone the Repository**
+Whether you're running a home server, self-hosted applications, or just want reliable email delivery for your projects, this tool makes it dead simple to get Mailgun working with your domain.
+
+## 🚀 Quick Start (Docker - Recommended)
+
+### Prerequisites
+- Docker installed on your system
+- A domain name (can be a subdomain)
+- Mailgun account (free tier available)
+- Cloudflare account (free tier available)
+
+### 1. Get Your API Keys
+
+**Mailgun API Key:**
+1. Go to [Mailgun Dashboard](https://app.mailgun.com/)
+2. Navigate to Settings → API Keys
+3. Copy your Private API key (starts with "key-")
+
+**Cloudflare API Key:**
+1. Go to [Cloudflare Dashboard](https://dash.cloudflare.com/)
+2. Click on your profile icon → My Profile → API Tokens
+3. Find "Global API Key" and click "View"
+4. Copy the API key and note your account email
+
+### 2. Run the Application
+
+**Option A: One-Command Start**
+```bash
+docker run -p 5000:5000 ghcr.io/reclaimergold/mg2cf:latest
+```
+
+**Option B: Build from Source**
+```bash
+# Clone the repository
+git clone https://github.com/ReclaimerGold/mg2cf.git
+cd mg2cf
+
+# Start with Docker Compose
+docker-compose up -d
+```
+
+### 3. Access the Web Interface
+
+Open your browser and go to: `http://localhost:5000`
+
+### 4. Configure Your Domain
+
+1. Enter your domain name (e.g., `mail.yourdomain.com`)
+2. Paste your Mailgun API key
+3. Paste your Cloudflare API key and email
+4. Click "Set Up Domain"
+
+That's it! The tool will automatically create all the necessary DNS records.
+
+## 🔧 Advanced Setup Options
+
+## 🔧 Advanced Setup Options
+
+### Using Docker Compose (Recommended for Production)
+
+1. **Create a project directory:**
    ```bash
-   git clone <repository-url>
-   cd automatic-mailgun
+   mkdir mailgun-setup && cd mailgun-setup
    ```
 
-2. **Run with Docker Compose**
-   ```bash
-   docker-compose up --build
+2. **Create a `docker-compose.yml` file:**
+   ```yaml
+   version: '3.8'
+   services:
+     mailgun-setup:
+       image: ghcr.io/reclaimergold/mg2cf:latest
+       ports:
+         - "5000:5000"
+       environment:
+         - FLASK_ENV=production
+         - SECRET_KEY=your-random-secret-key-here
+       restart: unless-stopped
    ```
 
-3. **Open in Browser**
-   Navigate to `http://localhost:5000`
-
-### Option 2: Local Python Installation
-
-1. **Install Dependencies**
+3. **Start the service:**
    ```bash
-   pip install -r requirements.txt
+   docker-compose up -d
    ```
 
-2. **Run the Application**
-   ```bash
-   cd src
-   python main.py
-   ```
+### Environment Variables
 
-3. **Open in Browser**
-   Navigate to `http://localhost:5000`
-
-### Option 3: Using Pre-built Docker Image
+You can configure the application using environment variables:
 
 ```bash
-docker run -p 5000:5000 ghcr.io/YOUR_USERNAME/automatic-mailgun:latest
+# Security
+SECRET_KEY=your-super-secret-key-change-this
+
+# Application settings
+FLASK_ENV=production          # Use 'development' for debugging
+HOST=0.0.0.0                 # Host to bind to
+PORT=5000                    # Port to run on
+
+# Optional API base URLs (usually don't need to change)
+MAILGUN_API_BASE_URL=https://api.mailgun.net/v3
+CLOUDFLARE_API_BASE_URL=https://api.cloudflare.com/client/v4
 ```
 
-## API Keys Required
+### Running Behind a Reverse Proxy
 
-### Mailgun
-- Go to Mailgun Dashboard → Settings → API Keys
-- Copy your API key (starts with "key-")
+If you're running this behind nginx or traefik:
 
-### Cloudflare
-- Go to Cloudflare Dashboard → My Profile → API Tokens → Global API Key
-- Copy your Global API Key and account email
+**nginx example:**
+```nginx
+server {
+    listen 80;
+    server_name mailgun-setup.yourdomain.com;
+    
+    location / {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
 
-## How It Works
+**Traefik labels (docker-compose):**
+```yaml
+labels:
+  - "traefik.enable=true"
+  - "traefik.http.routers.mailgun-setup.rule=Host(`mailgun-setup.yourdomain.com`)"
+```
 
-1. **Enter Credentials**: Provide your domain name and API keys
-2. **Zone Detection**: The app checks if your domain exists in Cloudflare
-3. **Automatic Setup**: If found, DNS records are created automatically
-4. **Manual Setup**: If not found, you get a formatted list for manual entry
+## 🛠️ Local Development Setup
 
-## Project Structure
+If you want to modify the code or run it without Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/ReclaimerGold/mg2cf.git
+cd mg2cf
+
+# Create a virtual environment
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the application
+cd src && python main.py
+```
+
+## 🔒 Security & Privacy
+
+- **No Data Storage**: API keys are only used during setup and never stored
+- **Local Processing**: All operations happen on your server
+- **HTTPS Ready**: Works behind SSL termination proxies
+- **Non-Root Container**: Docker image runs as non-privileged user
+- **Security Headers**: Includes basic security headers
+
+## 📋 Supported DNS Providers
+
+Currently supported:
+- ✅ **Cloudflare** (Primary support)
+
+Want more providers? Check out our [Development Guide](DEVELOPMENT.md) to see how easy it is to add:
+- cPanel/WHM
+- GoDaddy
+- Route 53
+- NameCheap
+- And more!
+
+## 🎯 Use Cases
+
+Perfect for:
+- **Home Lab Enthusiasts**: Get professional email delivery for your projects
+- **Small Business**: Set up reliable email without hiring a developer
+- **Self-Hosted Apps**: Add email functionality to your applications
+- **Learning**: Understand how email DNS records work
+- **Automation**: Integrate into your infrastructure automation
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+**"Port 5000 already in use"**
+```bash
+# Use a different port
+docker run -p 8080:5000 ghcr.io/reclaimergold/mg2cf:latest
+# Then access via http://localhost:8080
+```
+
+**"Cloudflare API Error"**
+- Make sure you're using the Global API Key, not a token
+- Verify your email address is correct
+- Check that your domain is actually managed by Cloudflare
+
+**"Mailgun Domain Not Found"**
+- The tool will create the domain for you automatically
+- Make sure your API key has the correct permissions
+
+**"DNS Records Not Created"**
+- Check that your Cloudflare zone exists for the domain
+- Verify API permissions allow DNS modifications
+
+### Getting Help
+
+1. Check the browser console for errors (F12 → Console)
+2. Look at container logs: `docker logs <container-name>`
+3. Open an issue on GitHub with details
+
+## 🔄 Updates & Maintenance
+
+### Updating to Latest Version
+
+```bash
+# Pull latest image
+docker pull ghcr.io/reclaimergold/mg2cf:latest
+
+# Restart your container
+docker-compose down && docker-compose up -d
+```
+
+### Backup & Recovery
+
+Since this tool doesn't store data, there's nothing to backup! Just keep your API keys safe.
+
+## ⚡ Performance & Scaling
+
+- **Lightweight**: Alpine Linux base image (~50MB)
+- **Fast**: Typically completes setup in under 30 seconds
+- **Resource Efficient**: Runs comfortably on Raspberry Pi
+- **Stateless**: Can be easily replicated or moved
+
+## 📊 Monitoring
+
+The container includes health checks. You can monitor it with:
+
+```bash
+# Check container health
+docker ps
+
+# View detailed health status
+docker inspect <container-name> | grep -A 10 Health
+```
+
+For production monitoring, the `/` endpoint returns HTTP 200 when healthy.
+
+## 📁 Project Structure
 
 ```
-├── src/
+mg2cf/
+├── src/                     # Application source code
 │   ├── main.py              # Flask application entry point
 │   ├── templates/           # HTML templates
-│   │   ├── base.html        # Base template with styling
-│   │   ├── index.html       # Landing page
-│   │   ├── setup.html       # Configuration form
-│   │   ├── automatic_setup.html  # Auto setup progress
-│   │   └── manual_setup.html     # Manual setup instructions
-│   ├── api/                 # API client modules
-│   │   ├── cloudflare_client.py  # Cloudflare API integration
-│   │   └── mailgun_client.py     # Mailgun API integration
+│   ├── api/                 # External API clients
 │   ├── models/              # Data models
-│   ├── utils/               # Utility functions
-│   └── static/              # Static assets (CSS, JS, images)
-├── tests/                   # Test files
+│   └── utils/               # Utility functions
+├── tests/                   # Automated tests
+├── Dockerfile              # Container configuration
+├── docker-compose.yml      # Docker Compose setup
 ├── requirements.txt         # Python dependencies
-├── Dockerfile              # Docker image configuration
-├── docker-compose.yml      # Docker Compose configuration
-├── .dockerignore           # Docker ignore file
-├── DOCKER.md               # Docker and deployment guide
-├── DEVELOPMENT.md          # Developer extension guide
 └── README.md               # This file
 ```
 
-## Docker Deployment
+## 📖 Additional Resources
 
-### Building the Image
-```bash
-docker build -t automatic-mailgun .
-```
-
-### Running the Container
-```bash
-docker run -p 5000:5000 automatic-mailgun
-```
-
-### Using Docker Compose
-```bash
-docker-compose up --build
-```
-
-### Environment Variables
-Copy `.env.example` to `.env` and configure:
-- `SECRET_KEY`: Flask secret key for session security
-- `FLASK_ENV`: Set to `production` for production deployments
-- `HOST`: Host to bind to (default: 0.0.0.0)
-- `PORT`: Port to bind to (default: 5000)
-
-## CI/CD
-
-This project includes GitHub Actions workflows for:
-- **Testing**: Runs on every push and pull request
-- **Docker Build**: Tests Docker image builds
-- **Release**: Publishes to GitHub Container Registry (ghcr.io) on new tags
-
-To trigger a release:
-1. Create a new tag: `git tag v1.0.0`
-2. Push the tag: `git push origin v1.0.0`
-3. Create a GitHub release from the tag
-```
-
-## Security Notes
-
-- API keys are only used during the setup process
-- No credentials are stored permanently
-- All communication uses HTTPS
-- The application runs locally on your machine
-
-## 📖 Additional Documentation
-
-- **[Docker and Deployment Guide](DOCKER.md)** - Complete guide for Docker usage and CI/CD
-- **[Development and Extension Guide](DEVELOPMENT.md)** - How to add new SMTP providers, DNS integrations, and extend the application
-- **[Development Setup](DOCKER.md#development-environment)** - Local development instructions
-- **[Release Process](DOCKER.md#creating-a-release)** - How to create and publish releases
+- **[Production Readiness Guide](PRODUCTION.md)** - Complete production deployment checklist
+- **[Docker Deployment Guide](DOCKER.md)** - Advanced Docker configurations and CI/CD
+- **[Development Guide](DEVELOPMENT.md)** - Add new providers and extend functionality
+- **[GitHub Repository](https://github.com/ReclaimerGold/mg2cf)** - Source code and issues
 
 ## 🤝 Contributing
 
-This project welcomes contributions! Whether you want to:
+We welcome contributions! Here's how you can help:
 
-- Add support for new SMTP providers (SendGrid, Amazon SES, Postmark, etc.)
-- Integrate additional DNS providers (cPanel, GoDaddy, Route 53, etc.)
-- Improve the user interface
-- Add new features or fix bugs
+### Quick Wins
+- 🐛 **Report bugs** or suggest improvements
+- 📝 **Improve documentation** or add examples
+- 🌍 **Add translations** for international users
 
-Please see the **[Development Guide](DEVELOPMENT.md)** for detailed instructions on extending the application.
+### Major Contributions
+- 🔌 **Add DNS providers** (GoDaddy, Route 53, etc.)
+- 📧 **Add SMTP providers** (SendGrid, Amazon SES, etc.)
+- 🎨 **Improve the user interface**
+- ⚡ **Performance optimizations**
+
+See our [Development Guide](DEVELOPMENT.md) for detailed instructions.
+
+## ⭐ Star This Project
+
+If this tool saves you time, please star the repository! It helps others discover it.
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE.md).
+
+---
+
+**Made with ❤️ for the home lab community**
+
+Need help? Open an issue on GitHub or check our troubleshooting guide above!

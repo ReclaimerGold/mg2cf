@@ -118,15 +118,16 @@ After a release, you can use the published Docker images:
 
 ```bash
 # Use specific version
-docker run -p 5000:5000 ghcr.io/YOUR_USERNAME/automatic-mailgun:v1.0.0
+docker run -p 5000:5000 ghcr.io/reclaimergold/mg2cf:v1.0.0
 
 # Use latest version
-docker run -p 5000:5000 ghcr.io/YOUR_USERNAME/automatic-mailgun:latest
+docker run -p 5000:5000 ghcr.io/reclaimergold/mg2cf:latest
 ```
 
 ## 🔧 Configuration Details
 
 ### Docker Image Features:
+- **Alpine Linux base** for minimal image size (~256MB vs ~354MB with Debian)
 - **Multi-stage build** for optimized image size
 - **Non-root user** for security
 - **Health checks** for container monitoring
