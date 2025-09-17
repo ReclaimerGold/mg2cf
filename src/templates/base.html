@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Mailgun DNS Setup{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        .dark ::-webkit-scrollbar-track { background: #374151; }
+        .midnight ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        .midnight ::-webkit-scrollbar-thumb { background: #ffffff; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        .dark ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+        .midnight ::-webkit-scrollbar-thumb:hover { background: #cccccc; }
+        
+        /* Toast notifications */
+        .toast { transition: all 0.3s ease; }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        
+        /* Custom animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+
+        /* Midnight theme stars */
+        .midnight .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            display: block;
+        }
+
+        .stars {
+            display: none;
+        }
+
+        .midnight .star {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            animation: twinkle 3s infinite ease-in-out;
+            box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+        }
+
+        .midnight .star:nth-child(odd) {
+            animation-delay: -1s;
+            animation-duration: 2s;
+        }
+
+        .midnight .star:nth-child(3n) {
+            animation-delay: -2s;
+            animation-duration: 4s;
+        }
+
+        .midnight .star:nth-child(5n) {
+            animation-delay: -0.5s;
+            animation-duration: 3.5s;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { 
+                opacity: 0.2; 
+                transform: scale(1);
+                box-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.5);
+                box-shadow: 0 0 20px rgba(255, 255, 255, 1), 0 0 30px rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        /* Special starlight effect for hero sections */
+        .midnight .starlight-bg {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .midnight .starlight-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(255, 255, 255, 0.015) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* High contrast text for midnight */
+        .midnight { color: #ffffff; }
+        .midnight .text-gray-900 { color: #ffffff; }
+        .midnight .text-gray-600 { color: #cccccc; }
+        .midnight .text-gray-500 { color: #aaaaaa; }
+        .midnight .text-gray-400 { color: #888888; }
+        .midnight .text-gray-300 { color: #dddddd; }
+        .midnight .text-gray-100 { color: #ffffff; }
+        .midnight .bg-white { background-color: #000000 !important; }
+        .midnight .bg-gray-50 { background-color: #111111 !important; }
+        .midnight .bg-gray-100 { background-color: #222222 !important; }
+        .midnight .bg-gray-200 { background-color: #333333 !important; }
+        .midnight .bg-gray-700 { background-color: #111111 !important; }
+        .midnight .bg-gray-800 { background-color: #000000 !important; }
+        .midnight .bg-gray-900 { background-color: #000000 !important; }
+        
+        /* Ensure all containers are opaque in midnight mode */
+        .midnight .bg-white,
+        .midnight .bg-gray-50,
+        .midnight .bg-gray-100,
+        .midnight .bg-gray-200,
+        .midnight .bg-gray-700,
+        .midnight .bg-gray-800,
+        .midnight .bg-gray-900 {
+            opacity: 1 !important;
+        }
+        
+        /* Only specific tiles should be above stars */
+        .midnight .rounded-xl,
+        .midnight .rounded-2xl {
+            position: relative;
+            z-index: 2;
+            background-color: inherit !important;
+        }
+        
+        /* Navigation and footer above stars but not blocking background */
+        .midnight nav,
+        .midnight footer {
+            position: relative;
+            z-index: 2;
+        }
+        
+        /* Override gradient backgrounds in midnight mode */
+        .midnight .bg-gradient-to-br { 
+            background: #000000 !important; 
+        }
+        .midnight .bg-gradient-to-r { 
+            background: #000000 !important; 
+        }
+        .midnight .bg-gradient-to-l { 
+            background: #000000 !important; 
+        }
+        .midnight .bg-gradient-to-t { 
+            background: #000000 !important; 
+        }
+        .midnight .bg-gradient-to-b { 
+            background: #000000 !important; 
+        }
+        
+        .midnight .border-gray-200 { border-color: #333333; }
+        .midnight .border-gray-600 { border-color: #666666; }
+        .midnight .border-gray-700 { border-color: #333333; }
+        .midnight .hover\:bg-gray-50:hover { background-color: #222222; }
+        .midnight .hover\:bg-gray-100:hover { background-color: #333333; }
+        .midnight .hover\:bg-gray-200:hover { background-color: #444444; }
+        .midnight .hover\:bg-gray-700:hover { background-color: #222222; }
+        .midnight .divide-gray-200 > * + * { border-color: #333333; }
+        .midnight .divide-gray-700 > * + * { border-color: #333333; }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 midnight:bg-black min-h-screen text-gray-900 dark:text-gray-100 midnight:text-white transition-colors">
+    <!-- Stars background for midnight theme -->
+    <div class="stars hidden">
+        <!-- Stars will be generated by JavaScript -->
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white dark:bg-gray-800 midnight:bg-black shadow-sm border-b border-gray-200 dark:border-gray-700 midnight:border-gray-900">
+        <div class="px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex items-center space-x-2">
+                        <i class="fas fa-envelope text-blue-600 dark:text-blue-400 midnight:text-blue-300 text-xl"></i>
+                        <div class="flex flex-col">
+                            <span class="text-xl font-bold text-gray-900 dark:text-gray-100 midnight:text-white">Mailgun DNS Setup</span>
+                            <span id="theme-subtitle" class="text-xs text-gray-500 dark:text-gray-400 midnight:text-gray-400">Light Mode</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-600 dark:text-gray-300 midnight:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 midnight:hover:text-white px-3 py-2 rounded-md text-sm font-medium">Home</a>
+                    <a href="/setup" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">Get Started</a>
+                    <!-- Theme Toggle Button -->
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 midnight:bg-gray-900 midnight:hover:bg-gray-800 transition-colors" aria-label="Toggle theme">
+                        <i id="theme-icon" class="fas fa-sun text-gray-600 dark:text-gray-300 midnight:text-yellow-300"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content - Full Screen Layout -->
+    <main class="flex-1 w-full">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-gray-800 midnight:bg-black border-t border-gray-200 dark:border-gray-700 midnight:border-gray-900 mt-auto">
+        <div class="px-4 sm:px-6 lg:px-8 py-6">
+            <div class="text-center text-gray-500 dark:text-gray-400 midnight:text-gray-400 text-sm">
+                <p>&copy; 2024 Mailgun DNS Setup. Built for seamless email configuration.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="toast bg-{{ 'red' if category == 'error' else 'green' }}-500 text-white px-4 py-3 rounded-lg shadow-lg max-w-sm fade-in">
+                        <div class="flex items-center space-x-2">
+                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }}"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <script>
+        // Auto-hide toasts after 5 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.toast').forEach(toast => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            });
+        }, 5000);
+
+        // Theme management
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+        const starsContainer = document.querySelector('.stars');
+
+        // Available themes
+        const themes = ['light', 'dark', 'midnight'];
+        let currentThemeIndex = 0;
+
+        // Check system preference
+        const getSystemTheme = () => {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        };
+
+        // Get stored theme or default to system preference
+        const getStoredTheme = () => {
+            const stored = localStorage.getItem('theme');
+            if (stored && themes.includes(stored)) {
+                currentThemeIndex = themes.indexOf(stored);
+                return stored;
+            }
+            const systemTheme = getSystemTheme();
+            currentThemeIndex = themes.indexOf(systemTheme);
+            return systemTheme;
+        };
+
+        // Apply theme
+        const applyTheme = (theme) => {
+            // Remove all theme classes
+            html.classList.remove('light', 'dark', 'midnight');
+            
+            // Add current theme class
+            html.classList.add(theme);
+            
+            // Update icon
+            updateThemeIcon(theme);
+            
+            // Handle stars for midnight theme
+            if (theme === 'midnight') {
+                generateStars();
+                starsContainer.classList.remove('hidden');
+                starsContainer.classList.add('block');
+            } else {
+                starsContainer.classList.add('hidden');
+                starsContainer.classList.remove('block');
+                clearStars();
+            }
+        };
+
+        // Update theme icon
+        const updateThemeIcon = (theme) => {
+            const themeSubtitle = document.getElementById('theme-subtitle');
+            
+            switch(theme) {
+                case 'light':
+                    themeIcon.className = 'fas fa-sun text-yellow-500';
+                    if (themeSubtitle) themeSubtitle.textContent = 'Light Mode';
+                    break;
+                case 'dark':
+                    themeIcon.className = 'fas fa-moon text-gray-300';
+                    if (themeSubtitle) themeSubtitle.textContent = 'Dark Mode';
+                    break;
+                case 'midnight':
+                    themeIcon.className = 'fas fa-star text-yellow-300';
+                    if (themeSubtitle) themeSubtitle.textContent = 'Midnight Mode';
+                    break;
+            }
+        };
+
+        // Generate animated stars
+        const generateStars = () => {
+            if (starsContainer.children.length > 0) return; // Already generated
+            
+            // Create more stars with varied sizes for better effect
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                // Create varied star sizes
+                const size = Math.random() * 4 + 1; // 1-5px
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                
+                // Varied animation delays and durations
+                star.style.animationDelay = Math.random() * 5 + 's';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                
+                starsContainer.appendChild(star);
+            }
+        };
+
+        // Clear stars
+        const clearStars = () => {
+            starsContainer.innerHTML = '';
+        };
+
+        // Toggle theme (cycle through themes)
+        const toggleTheme = () => {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            const newTheme = themes[currentThemeIndex];
+            
+            localStorage.setItem('theme', newTheme);
+            applyTheme(newTheme);
+        };
+
+        // Listen for system theme changes (only for light/dark, not midnight)
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+            if (!localStorage.getItem('theme')) {
+                const newTheme = e.matches ? 'dark' : 'light';
+                currentThemeIndex = themes.indexOf(newTheme);
+                applyTheme(newTheme);
+            }
+        });
+
+        // Event listeners
+        themeToggle.addEventListener('click', toggleTheme);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const theme = getStoredTheme();
+            applyTheme(theme);
+        });
+    </script>
+</body>
+</html>

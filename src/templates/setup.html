@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="w-full min-h-screen bg-gray-50 dark:bg-gray-900 midnight:bg-black py-12">
+    <div class="w-full px-4 sm:px-6 lg:px-8">
+        <div class="w-full max-w-none">
+            <div class="max-w-2xl mx-auto">
+                <div class="text-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 midnight:text-white mb-2">Configure Your Domain</h1>
+                    <p class="text-gray-600 dark:text-gray-300 midnight:text-gray-300">Enter your credentials to set up Mailgun with Cloudflare DNS</p>
+                </div>
+                
+                <div class="bg-white dark:bg-gray-800 midnight:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 midnight:border-gray-700 p-8">
+                    <!-- Security Verification Notice -->
+                    <div class="mb-6 bg-green-50 dark:bg-green-900/20 midnight:bg-green-900/20 border border-green-200 dark:border-green-800 midnight:border-green-800 rounded-lg p-4">
+                        <div class="flex items-start space-x-3">
+                            <i class="fas fa-shield-check text-green-600 dark:text-green-400 midnight:text-green-300 mt-1"></i>
+                            <div>
+                                <h3 class="text-sm font-medium text-green-900 dark:text-green-100 midnight:text-green-100 mb-1">Security Verified</h3>
+                                <p class="text-sm text-green-800 dark:text-green-200 midnight:text-green-200">Your credentials are processed locally in your browser and never sent to our servers for storage.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form method="POST" class="space-y-6">
+                        <!-- Two Column Layout -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <label for="domain" class="block text-sm font-medium text-gray-700 dark:text-gray-300 midnight:text-gray-300 mb-2">Domain Name</label>
+                                <input type="text" id="domain" name="domain" required 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 midnight:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 midnight:bg-black text-gray-900 dark:text-gray-100 midnight:text-white transition-colors"
+                                       placeholder="example.com">
+                            </div>
+                            
+                            <div>
+                                <label for="cloudflare_email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 midnight:text-gray-300 mb-2">Cloudflare Email</label>
+                                <input type="email" id="cloudflare_email" name="cloudflare_email" required 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 midnight:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 midnight:bg-black text-gray-900 dark:text-gray-100 midnight:text-white transition-colors"
+                                       placeholder="your@email.com">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div>
+                                <label for="mailgun_api_key" class="block text-sm font-medium text-gray-700 dark:text-gray-300 midnight:text-gray-300 mb-2">Mailgun API Key</label>
+                                <input type="password" id="mailgun_api_key" name="mailgun_api_key" required 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 midnight:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 midnight:bg-black text-gray-900 dark:text-gray-100 midnight:text-white transition-colors"
+                                       placeholder="key-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                            </div>
+                            
+                            <div>
+                                <label for="cloudflare_api_key" class="block text-sm font-medium text-gray-700 dark:text-gray-300 midnight:text-gray-300 mb-2">Cloudflare API Key</label>
+                                <input type="password" id="cloudflare_api_key" name="cloudflare_api_key" required 
+                                       class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 midnight:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 midnight:bg-black text-gray-900 dark:text-gray-100 midnight:text-white transition-colors"
+                                       placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                            <i class="fas fa-cog mr-2"></i>
+                            Start Setup Process
+                        </button>
+                        
+                        <!-- Security Verification Link -->
+                        <div class="text-center mt-4">
+                            <a href="/security-verification" target="_blank" class="text-sm text-blue-600 dark:text-blue-400 midnight:text-blue-300 hover:underline">
+                                <i class="fas fa-external-link-alt mr-1"></i>
+                                Verify Security Claims (Test with Browser Tools)
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="mt-8 bg-blue-50 dark:bg-blue-900/20 midnight:bg-blue-900/20 border border-blue-200 dark:border-blue-800 midnight:border-blue-800 rounded-lg p-6">
+                    <div class="flex items-start space-x-3">
+                        <i class="fas fa-info-circle text-blue-600 dark:text-blue-400 midnight:text-blue-300 mt-1"></i>
+                        <div>
+                            <h3 class="text-sm font-medium text-blue-900 dark:text-blue-100 midnight:text-blue-100 mb-1">API Key Locations</h3>
+                            <ul class="text-sm text-blue-800 dark:text-blue-200 midnight:text-blue-200 space-y-1">
+                                <li><strong>Mailgun:</strong> Dashboard → Settings → API Keys</li>
+                                <li><strong>Cloudflare:</strong> Dashboard → My Profile → API Tokens → Global API Key</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
