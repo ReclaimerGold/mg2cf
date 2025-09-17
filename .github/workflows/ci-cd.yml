@@ -66,18 +66,19 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        push: false
+        load: true
         tags: test-image:latest
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
     - name: Test Docker image
       run: |
-        docker run -d --name test-container -p 5000:5000 test-image:latest
-        sleep 10
+        docker run -d --name test-container -p 5001:5000 test-image:latest
+        sleep 15
         # Test if the application is responding
-        curl -f http://localhost:5000/ || exit 1
+        curl -f http://localhost:5001/ || exit 1
         docker stop test-container
+        docker rm test-container
         docker rm test-container
 
   publish:
